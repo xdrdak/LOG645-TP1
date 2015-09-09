@@ -40,7 +40,7 @@ void program_one(int p, int n)
     print_row(matrix[i]);
   }
 
-  printf("---------\n");
+  printf("--------\n");
   printf("Final Matrix\n");
 
   for(k = 1; k <= n; k++)
