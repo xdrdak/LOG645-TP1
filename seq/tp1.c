@@ -51,7 +51,7 @@ void program_one(int p, int n)
   //Initialize the matrix
   init_matrix(matrix, p);
 
-  printf("---------\n");
+  printf("--------\n");
   printf("Final Matrix\n");
 
   int i, j, k;
