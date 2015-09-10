@@ -5,9 +5,18 @@
 
 #define MAX_MATRIX_SIZE 8
 
+void clone_2d_atob(int *a, int *b)
+{
+  int i;
+  for(i = 0; i < sizeof(a[0]); i++)
+  {
+    memcpy(&b[i], &a[i], sizeof(a[0]));
+  }
+}
+
 void print_row(int a[MAX_MATRIX_SIZE])
 {
-  printf("%d %d %d %d %d %d %d %d \n"
+  printf("%d %d %d %d %d %d %d %d\n"
       , a[0]
       , a[1]
       , a[2]
@@ -18,39 +27,42 @@ void print_row(int a[MAX_MATRIX_SIZE])
       , a[7]);
 }
 
+void init_matrix(int arr[][MAX_MATRIX_SIZE], int p)
+{
+  printf("Initializing Matrix\n");
+  int i,j;
+  for(i = 0; i < MAX_MATRIX_SIZE; i++)
+  {
+    for(j = 0; j < MAX_MATRIX_SIZE; j++)
+    {
+      arr[i][j] = p;
+    }
+    print_row(arr[i]);
+  }
+
+}
+
 void program_one(int p, int n)
 {
 
   int matrix[MAX_MATRIX_SIZE][MAX_MATRIX_SIZE];
   int calculated_matrix[MAX_MATRIX_SIZE][MAX_MATRIX_SIZE];
 
-  int i, j, k;
-  printf("Program 1 - Initial matrix\n");
-
   //Initialize the matrix
-  for ( i = 0; i < MAX_MATRIX_SIZE; i++ )
-  {
-    for ( j = 0; j < MAX_MATRIX_SIZE; j++ )
-    {
-      //Simulate intensive calculation
-      //usleep(1000);
-      matrix[i][j] = p;
-    }
-
-    print_row(matrix[i]);
-  }
+  init_matrix(matrix, p);
 
   printf("---------\n");
   printf("Final Matrix\n");
 
+  int i, j, k;
   for(k = 1; k <= n; k++)
   {
-    for ( i = 0; i < MAX_MATRIX_SIZE; i++ )
+    for(i = 0; i < MAX_MATRIX_SIZE; i++)
     {
-      for ( j = 0; j < MAX_MATRIX_SIZE; j++ )
+      for(j = 0; j < MAX_MATRIX_SIZE; j++)
       {
         //Simulate intensive calculation
-        //usleep(1000);
+        usleep(1000);
         calculated_matrix[i][j] = matrix[i][j] + (i + j) * k;
       }
 
@@ -58,13 +70,11 @@ void program_one(int p, int n)
       {
         print_row(calculated_matrix[i]);
       }
+
     } //End of calculated matrix "intensive" operations
 
     //Store values
-    for(i = 0; i < MAX_MATRIX_SIZE; i++)
-    {
-      memcpy(&matrix[i], &calculated_matrix[i], sizeof(calculated_matrix[0]));
-    }
+    clone_2d_atob(*calculated_matrix, *matrix);
 
   }
 
@@ -76,33 +86,21 @@ void program_two(int p, int n)
   int matrix[MAX_MATRIX_SIZE][MAX_MATRIX_SIZE];
   int calculated_matrix[MAX_MATRIX_SIZE][MAX_MATRIX_SIZE];
 
-  int i, j, k;
-  printf("Program 2 - Initial matrix\n");
-
   //Initialize the matrix
-  for ( i = 0; i < MAX_MATRIX_SIZE; i++ )
-  {
-    for ( j = 0; j < MAX_MATRIX_SIZE; j++ )
-    {
-      //Simulate intensive calculation
-      //usleep(1000);
-      matrix[i][j] = p;
-    }
-
-    print_row(matrix[i]);
-  }
+  init_matrix(matrix, p);
 
   printf("---------\n");
   printf("Final Matrix\n");
 
+  int i, j, k;
   for(k = 1; k <= n; k++)
   {
-    for ( i = 0; i < MAX_MATRIX_SIZE; i++ )
+    for(i = 0; i < MAX_MATRIX_SIZE; i++)
     {
-      for ( j = 0; j < MAX_MATRIX_SIZE; j++ )
+      for(j = 0; j < MAX_MATRIX_SIZE; j++)
       {
         //Simulate intensive calculation
-        //usleep(1000);
+        usleep(1000);
         if (j == 0)
         {
           calculated_matrix[i][j] = matrix[i][j] + (i * k);
@@ -118,14 +116,11 @@ void program_two(int p, int n)
       {
         print_row(calculated_matrix[i]);
       }
+
     } //End of calculated matrix "intensive" operations
 
     //Store values
-    for(i = 0; i < MAX_MATRIX_SIZE; i++)
-    {
-      memcpy(&matrix[i], &calculated_matrix[i], sizeof(calculated_matrix[0]));
-    }
-
+    clone_2d_atob(*calculated_matrix, *matrix);
   }
 
 }
@@ -135,10 +130,12 @@ int main(int argc, char **argv)
 
   if(argc == 4 && *argv[1] == '1')
   {
+    printf("Program 1\n");
     program_one(atoi(argv[2]), atoi(argv[3]));
   }
   else if(argc == 4 && *argv[1] == '2')
   {
+    printf("Program 2\n");
     program_two(atoi(argv[2]), atoi(argv[3]));
   }
   else
