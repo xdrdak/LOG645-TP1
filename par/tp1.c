@@ -8,43 +8,35 @@
 
 #define MASTER 0
 #define MAX_MATRIX_SIZE 8
+#define CHUNK_SIZE 4
 
-void printMatrix(int arr[][MAX_MATRIX_SIZE])
-{
+void printMatrix(int arr[][MAX_MATRIX_SIZE]) {
   int i, j;
-  for(i = 0; i < MAX_MATRIX_SIZE; i++)
-  {
-    for(j = 0; j < MAX_MATRIX_SIZE; j++)
-    {
+  for (i = 0; i < MAX_MATRIX_SIZE; i++) {
+    for (j = 0; j < MAX_MATRIX_SIZE; j++) {
        printf("%d  ", arr[i][j]);
     }
     printf("\n");
   }
 }
 
-void init_matrix(int arr[][MAX_MATRIX_SIZE], int p)
-{
+void init_matrix(int arr[][MAX_MATRIX_SIZE], int p) {
   int i,j;
-  for(i = 0; i < MAX_MATRIX_SIZE; i++)
-  {
-    for(j = 0; j < MAX_MATRIX_SIZE; j++)
-    {
+  for(i = 0; i < MAX_MATRIX_SIZE; i++) {
+    for(j = 0; j < MAX_MATRIX_SIZE; j++) {
       arr[i][j] = p;
     }
   }
 }
-int x_o(int o)
-{
+int x_o(int o) {
   return o%MAX_MATRIX_SIZE;
 }
 
-int y_o(int o)
-{
+int y_o(int o) {
   return o/MAX_MATRIX_SIZE;
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 
   int err, processors, rank;
   err = MPI_Init(&argc, &argv);
@@ -53,19 +45,17 @@ int main(int argc, char **argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   int choice = atoi(argv[1]);
-  if ((choice == 1 || choice == 2) && argc == 4)
-  {
+  if ((choice == 1 || choice == 2) && argc == 4) {
 
     int offset;
     int p = atoi(argv[2]);
     int n = atoi(argv[3]);
     int matrix[MAX_MATRIX_SIZE][MAX_MATRIX_SIZE];
-    int chunk[5]; //5th position contains source
+    int chunk[CHUNK_SIZE+1]; //last position contains source
 
     MPI_Status status;
 
-    if (rank == MASTER)
-    {
+    if (rank == MASTER) {
       struct timeval tval_before, tval_after, tval_result;
       gettimeofday(&tval_before, NULL);
 
@@ -76,60 +66,91 @@ int main(int argc, char **argv)
       //Dispatch job to every worker;
       int i, chunk_index;
 
-      for(i = 1; i < processors; i++)
-      {
-        MPI_Send(&p, 5, MPI_INT, i, i, MPI_COMM_WORLD);
+      for(i = 1; i < processors; i++) {
+        MPI_Send(&p, 1, MPI_INT, i, i, MPI_COMM_WORLD);
       }
 
-      //Wait for workers to complete tasks
-      for(i = 1; i < processors; i++)
-      {
-        MPI_Recv(&chunk[0], 5, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      //Equation 1 reassembly
+      for (i = 1; i < processors; i++) {
+        //Wait for whatever worker info
+        MPI_Recv(&chunk[0], CHUNK_SIZE+1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-        offset = (chunk[4] - 1)*4;
-        for(chunk_index = 0; chunk_index < 4; chunk_index++)
-        {
-          matrix[x_o(offset)][y_o(offset)] = chunk[chunk_index];
+        offset = (chunk[CHUNK_SIZE] - 1) * CHUNK_SIZE;//translate the rank into a 1D array index
+        for (chunk_index = 0; chunk_index < CHUNK_SIZE; chunk_index++) {
+          matrix[y_o(offset)][x_o(offset)] = chunk[chunk_index];
           offset++;
         }
       }
-      printf("---------\n");
-      printf("Final Matrix\n");
+      //End of Equation 1 reassembly
+      printf("---------\nFinal Matrix\n");
       printMatrix(matrix);
-
+      printf("---------\n");
       gettimeofday(&tval_after, NULL);
       timersub(&tval_after, &tval_before, &tval_result);
       printf("Time elapsed: %ld.%06ld seconds\n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
     }
 
-    if (rank > MASTER)
-    {
+    //Worker process
+    if (rank > MASTER) {
       //Wait until we receive something from master
-      MPI_Recv(&p, MAX_MATRIX_SIZE^2, MPI_INT, MASTER, rank, MPI_COMM_WORLD, &status);
+      MPI_Recv(&p, 1, MPI_INT, MASTER, rank, MPI_COMM_WORLD, &status);
+      //Equation 1
       int chunk_index, k;
-      for(k = 0; k < 4; k++)
-      {
+      int prevCellValue = 0;
+
+
+      //initialize our first chunk based on p val.
+      for (k = 0; k < CHUNK_SIZE; k++) {
         chunk[k] = p;
       }
-      for(k = 1; k <= n; k++)
-      {
-        offset = (rank - 1)*4;
+      for (k = 1; k <= n; k++) {
+        offset = (rank - 1) * CHUNK_SIZE; //translate the rank into a 1D array index
 
-        for(chunk_index = 0; chunk_index < 4; chunk_index++)
-        {
-          usleep(1000);
-          chunk[chunk_index] = chunk[chunk_index] + (x_o(offset) + y_o(offset)) * k;
+        if(choice == 2 && (rank-1) % 2  == 1){
+          MPI_Recv(&prevCellValue, 1, MPI_INT, rank-1, rank, MPI_COMM_WORLD, &status);
+        }
+
+        for (chunk_index = 0; chunk_index < CHUNK_SIZE; chunk_index++) {
+          usleep(1000); //simulate hardwork
+          if(choice == 2 ){
+            if((rank-1) % 2 == 0){
+              if (x_o(offset) == 0) {
+                chunk[chunk_index] =  chunk[chunk_index] + ( y_o(offset) * k);
+              }
+              else {
+                chunk[chunk_index] =  chunk[chunk_index] + chunk[chunk_index-1] * k;
+              }
+            }
+            else{
+              if(chunk_index == 0){
+                chunk[chunk_index] =  chunk[chunk_index] + prevCellValue * k;
+              } else {
+                chunk[chunk_index] =  chunk[chunk_index] + chunk[chunk_index-1] * k;
+              }
+
+            }
+
+
+          }
+          else if(choice == 1){
+            chunk[chunk_index] = chunk[chunk_index] + (x_o(offset) + y_o(offset)) * k;
+          }
           offset++;
         } //End of calculated matrix "intensive" operations
         //Reset offset and recalculate x and y
 
-      } //End of K for
-      chunk[4] = rank;
-      MPI_Send(&chunk[0], 5, MPI_INT, MASTER, rank, MPI_COMM_WORLD);
+        if(choice == 2 && (rank-1) % 2  == 0 ){
+          MPI_Send(&chunk[CHUNK_SIZE-1], 1, MPI_INT, rank+1, rank+1, MPI_COMM_WORLD);
+        }
+
+      } //End of K for loop
+      chunk[CHUNK_SIZE] = rank; //set our worker id. Master needs the worker id to fuse array
+
+      MPI_Send(&chunk[0], CHUNK_SIZE+1, MPI_INT, MASTER, rank, MPI_COMM_WORLD);
+      //End of Equation 1
     }
   }
-  else
-  {
+  else {
     if(rank == MASTER)
       printf("Invalid parameters detected. Please check again!\n");
   }

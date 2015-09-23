@@ -4,57 +4,45 @@
 #include <time.h>
 #include <sys/time.h>
 
-
 #define MAX_MATRIX_SIZE 8
 
-void printMatrix(int arr[][MAX_MATRIX_SIZE])
-{
+void printMatrix(int arr[][MAX_MATRIX_SIZE]) {
   int i, j;
-  for(i = 0; i < MAX_MATRIX_SIZE; i++)
-  {
-    for(j = 0; j < MAX_MATRIX_SIZE; j++)
-    {
+  for(i = 0; i < MAX_MATRIX_SIZE; i++) {
+    for(j = 0; j < MAX_MATRIX_SIZE; j++) {
        printf("%d  ", arr[i][j]);
     }
     printf("\n");
   }
 }
 
-void init_matrix(int arr[][MAX_MATRIX_SIZE], int p)
-{
+void init_matrix(int arr[][MAX_MATRIX_SIZE], int p) {
   int i,j;
-  for(i = 0; i < MAX_MATRIX_SIZE; i++)
-  {
-    for(j = 0; j < MAX_MATRIX_SIZE; j++)
-    {
+  for(i = 0; i < MAX_MATRIX_SIZE; i++) {
+    for(j = 0; j < MAX_MATRIX_SIZE; j++) {
       arr[i][j] = p;
     }
   }
 }
 
-int formula_1(int arr[][MAX_MATRIX_SIZE], int i, int j, int k)
-{
+int formula_1(int arr[][MAX_MATRIX_SIZE], int i, int j, int k) {
   return arr[i][j] + (i + j) * k;
 }
 
-int formula_2(int arr[][MAX_MATRIX_SIZE], int i, int j, int k)
-{
-  if (j == 0)
-  {
+int formula_2(int arr[][MAX_MATRIX_SIZE], int i, int j, int k) {
+  if (j == 0) {
     return arr[i][j] + (i * k);
   }
-  else
-  {
+  else {
+
     return arr[i][j] + arr[i][j-1] * k;
   }
 }
 
-int main(int argc, char **argv)
-{
-
+int main(int argc, char **argv) {
   int choice = atoi(argv[1]);
-  if ((choice == 1 || choice == 2) && argc == 4)
-  {
+
+  if ((choice == 1 || choice == 2) && argc == 4) {
     struct timeval tval_before, tval_after, tval_result;
     gettimeofday(&tval_before, NULL);
 
@@ -65,25 +53,18 @@ int main(int argc, char **argv)
     printf("Initializing Matrix\n");
     init_matrix(matrix, p);
     printMatrix(matrix);
-    printf("---------\n");
-    printf("Final Matrix\n");
 
+    printf("---------\nFinal Matrix\n");
     int i, j, k;
 
-    for(k = 1; k <= n; k++)
-    {
-      for(i = 0; i < MAX_MATRIX_SIZE; i++)
-      {
-        for(j = 0; j < MAX_MATRIX_SIZE; j++)
-        {
-          //Simulate intensive calculation
-          usleep(1000);
-          if (choice == 1)
-          {
+    for(k = 1; k <= n; k++) {
+      for(i = 0; i < MAX_MATRIX_SIZE; i++) {
+        for(j = 0; j < MAX_MATRIX_SIZE; j++) {
+          usleep(1000); //simulate hardwork
+          if (choice == 1) {
             matrix[i][j] = formula_1(matrix, i, j, k);
           }
-          else if(choice == 2)
-          {
+          else if(choice == 2) {
             matrix[i][j] = formula_2(matrix, i, j, k);
           }
         }
@@ -98,8 +79,7 @@ int main(int argc, char **argv)
     printf("Time elapsed: %ld.%06ld seconds\n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
     return 0;
   }
-  else
-  {
+  else {
     printf("Invalid parameters detected. Please check again!\n");
     return 1;
   }
