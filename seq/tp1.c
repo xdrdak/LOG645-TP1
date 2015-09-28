@@ -6,17 +6,17 @@
 
 #define MAX_MATRIX_SIZE 8
 
-void printMatrix(int arr[][MAX_MATRIX_SIZE]) {
+void printMatrix(unsigned long long arr[][MAX_MATRIX_SIZE]) {
   int i, j;
   for(i = 0; i < MAX_MATRIX_SIZE; i++) {
     for(j = 0; j < MAX_MATRIX_SIZE; j++) {
-       printf("%d  ", arr[i][j]);
+       printf("%llu ", arr[i][j]);
     }
     printf("\n");
   }
 }
 
-void init_matrix(int arr[][MAX_MATRIX_SIZE], int p) {
+void init_matrix(unsigned long long arr[][MAX_MATRIX_SIZE], int p) {
   int i,j;
   for(i = 0; i < MAX_MATRIX_SIZE; i++) {
     for(j = 0; j < MAX_MATRIX_SIZE; j++) {
@@ -25,11 +25,11 @@ void init_matrix(int arr[][MAX_MATRIX_SIZE], int p) {
   }
 }
 
-int formula_1(int arr[][MAX_MATRIX_SIZE], int i, int j, int k) {
+int formula_1(unsigned long long arr[][MAX_MATRIX_SIZE], int i, int j, int k) {
   return arr[i][j] + (i + j) * k;
 }
 
-int formula_2(int arr[][MAX_MATRIX_SIZE], int i, int j, int k) {
+int formula_2(unsigned long long arr[][MAX_MATRIX_SIZE], int i, int j, int k) {
   if (j == 0) {
     return arr[i][j] + (i * k);
   }
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 
     int p = atoi(argv[2]);
     int n = atoi(argv[3]);
-    int matrix[MAX_MATRIX_SIZE][MAX_MATRIX_SIZE];
+    unsigned long long matrix[MAX_MATRIX_SIZE][MAX_MATRIX_SIZE];
 
     printf("Initializing Matrix\n");
     init_matrix(matrix, p);

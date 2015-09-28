@@ -11,17 +11,17 @@
 //Number of cells to send
 #define CHUNK_SIZE 4
 
-void printMatrix(int arr[][MAX_MATRIX_SIZE]) {
+void printMatrix(unsigned long long arr[][MAX_MATRIX_SIZE]) {
   int i, j;
   for (i = 0; i < MAX_MATRIX_SIZE; i++) {
     for (j = 0; j < MAX_MATRIX_SIZE; j++) {
-       printf("%d  ", arr[i][j]);
+       printf("%llu  ", arr[i][j]);
     }
     printf("\n");
   }
 }
 
-void init_matrix(int arr[][MAX_MATRIX_SIZE], int p) {
+void init_matrix(unsigned long long arr[][MAX_MATRIX_SIZE], int p) {
   int i,j;
   for(i = 0; i < MAX_MATRIX_SIZE; i++) {
     for(j = 0; j < MAX_MATRIX_SIZE; j++) {
@@ -30,11 +30,11 @@ void init_matrix(int arr[][MAX_MATRIX_SIZE], int p) {
   }
 }
 //Find the x value based on our offset/index
-int x_o(int o) {
+unsigned long long x_o(int o) {
   return o%MAX_MATRIX_SIZE;
 }
 //Find the y value based on our offset/index
-int y_o(int o) {
+unsigned long long y_o(int o) {
   return o/MAX_MATRIX_SIZE;
 }
 
@@ -52,8 +52,8 @@ int main(int argc, char **argv) {
     int offset;
     int p = atoi(argv[2]);
     int n = atoi(argv[3]);
-    int matrix[MAX_MATRIX_SIZE][MAX_MATRIX_SIZE];
-    int chunk[CHUNK_SIZE+1]; //last position contains source
+    unsigned long long matrix[MAX_MATRIX_SIZE][MAX_MATRIX_SIZE];
+    unsigned long long chunk[CHUNK_SIZE+1]; //last position contains source
 
     MPI_Status status;
 
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
       //Equation 1 reassembly
       for (i = 1; i < processors; i++) {
         //Wait for whatever worker info
-        MPI_Recv(&chunk[0], CHUNK_SIZE+1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Recv(&chunk[0], CHUNK_SIZE+1, MPI_LONG_LONG, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         offset = (chunk[CHUNK_SIZE] - 1) * CHUNK_SIZE;//translate the rank into a 1D array index
         for (chunk_index = 0; chunk_index < CHUNK_SIZE; chunk_index++) {
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
       //Wait until we receive something from master
       MPI_Recv(&p, 1, MPI_INT, MASTER, rank, MPI_COMM_WORLD, &status);
       int chunk_index, k;
-      int prevCellValue = 0;
+      unsigned long long prevCellValue = 0;
 
       //initialize our first chunk based on p val.
       for (k = 0; k < CHUNK_SIZE; k++) {
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
         offset = (rank - 1) * CHUNK_SIZE; //translate the rank into a 1D array index
 
         if(choice == 2 && (rank-1) % 2  == 1){
-          MPI_Recv(&prevCellValue, 1, MPI_INT, rank-1, rank, MPI_COMM_WORLD, &status);
+          MPI_Recv(&prevCellValue, 1, MPI_LONG_LONG, rank-1, rank, MPI_COMM_WORLD, &status);
         }
 
         for (chunk_index = 0; chunk_index < CHUNK_SIZE; chunk_index++) {
@@ -132,13 +132,13 @@ int main(int argc, char **argv) {
         //Reset offset and recalculate x and y
 
         if(choice == 2 && (rank-1) % 2  == 0 ){
-          MPI_Send(&chunk[CHUNK_SIZE-1], 1, MPI_INT, rank+1, rank+1, MPI_COMM_WORLD);
+          MPI_Send(&chunk[CHUNK_SIZE-1], 1, MPI_LONG_LONG, rank+1, rank+1, MPI_COMM_WORLD);
         }
 
       } //End of K for loop
       chunk[CHUNK_SIZE] = rank; //set our worker id. Master needs the worker id to fuse array
 
-      MPI_Send(&chunk[0], CHUNK_SIZE+1, MPI_INT, MASTER, rank, MPI_COMM_WORLD);
+      MPI_Send(&chunk[0], CHUNK_SIZE+1, MPI_LONG_LONG, MASTER, rank, MPI_COMM_WORLD);
       //End of Equation 1
     }
   }
