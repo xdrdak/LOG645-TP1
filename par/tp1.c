@@ -8,6 +8,7 @@
 
 #define MASTER 0
 #define MAX_MATRIX_SIZE 8
+//Number of cells to send
 #define CHUNK_SIZE 4
 
 void printMatrix(int arr[][MAX_MATRIX_SIZE]) {
@@ -28,10 +29,11 @@ void init_matrix(int arr[][MAX_MATRIX_SIZE], int p) {
     }
   }
 }
+//Find the x value based on our offset/index
 int x_o(int o) {
   return o%MAX_MATRIX_SIZE;
 }
-
+//Find the y value based on our offset/index
 int y_o(int o) {
   return o/MAX_MATRIX_SIZE;
 }
@@ -94,10 +96,8 @@ int main(int argc, char **argv) {
     if (rank > MASTER) {
       //Wait until we receive something from master
       MPI_Recv(&p, 1, MPI_INT, MASTER, rank, MPI_COMM_WORLD, &status);
-      //Equation 1
       int chunk_index, k;
       int prevCellValue = 0;
-
 
       //initialize our first chunk based on p val.
       for (k = 0; k < CHUNK_SIZE; k++) {
@@ -112,25 +112,16 @@ int main(int argc, char **argv) {
 
         for (chunk_index = 0; chunk_index < CHUNK_SIZE; chunk_index++) {
           usleep(1000); //simulate hardwork
-          if(choice == 2 ){
-            if((rank-1) % 2 == 0){
-              if (x_o(offset) == 0) {
-                chunk[chunk_index] =  chunk[chunk_index] + ( y_o(offset) * k);
-              }
-              else {
-                chunk[chunk_index] =  chunk[chunk_index] + chunk[chunk_index-1] * k;
-              }
+          if(choice == 2){
+            if((rank-1) % 2 == 0 && x_o(offset) == 0){
+               chunk[chunk_index] =  chunk[chunk_index] + ( y_o(offset) * k);
             }
-            else{
-              if(chunk_index == 0){
-                chunk[chunk_index] =  chunk[chunk_index] + prevCellValue * k;
-              } else {
-                chunk[chunk_index] =  chunk[chunk_index] + chunk[chunk_index-1] * k;
-              }
-
+            else if((rank-1) % 1 == 0 && chunk_index == 0){
+              chunk[chunk_index] =  chunk[chunk_index] + prevCellValue * k;
             }
-
-
+            else {
+              chunk[chunk_index] =  chunk[chunk_index] + chunk[chunk_index-1] * k;
+            }
           }
           else if(choice == 1){
             chunk[chunk_index] = chunk[chunk_index] + (x_o(offset) + y_o(offset)) * k;

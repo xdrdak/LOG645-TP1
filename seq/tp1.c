@@ -34,7 +34,6 @@ int formula_2(int arr[][MAX_MATRIX_SIZE], int i, int j, int k) {
     return arr[i][j] + (i * k);
   }
   else {
-
     return arr[i][j] + arr[i][j-1] * k;
   }
 }

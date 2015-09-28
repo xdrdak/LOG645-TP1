@@ -14,9 +14,6 @@ tp1 : tp1.o
 run:
 	mpirun --hostfile hostfile -np 17 tp1 1 1 4
 
-run_1:
-	./tp1 1 2 3
-
 ps:
 	ps -fu $$USER
 

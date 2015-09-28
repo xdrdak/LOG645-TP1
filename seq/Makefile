@@ -11,8 +11,8 @@ tp1.o: tp1.c
 tp1 : tp1.o
 	$(CC) $(LFLAGS) tp1.o -o tp1
 
-run_1:
-	./tp1 1 2 3
+run:
+	./tp1
 
 ps:
 	ps -fu $$USER
