@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
   int choice = atoi(argv[1]);
 
   if ((choice == 1 || choice == 2) && argc == 4) {
+    //Timer function : http://stackoverflow.com/questions/361363/how-to-measure-time-in-milliseconds-using-ansi-c
     struct timeval tval_before, tval_after, tval_result;
     gettimeofday(&tval_before, NULL);
 

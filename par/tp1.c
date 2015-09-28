@@ -58,6 +58,7 @@ int main(int argc, char **argv) {
     MPI_Status status;
 
     if (rank == MASTER) {
+      //Timer function : http://stackoverflow.com/questions/361363/how-to-measure-time-in-milliseconds-using-ansi-c
       struct timeval tval_before, tval_after, tval_result;
       gettimeofday(&tval_before, NULL);
 
